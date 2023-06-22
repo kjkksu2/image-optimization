@@ -2,6 +2,7 @@ const path = require("path");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const ImageMinimizerPlugin = require("image-minimizer-webpack-plugin");
+const CopyPlugin = require("copy-webpack-plugin");
 
 module.exports = {
   entry: "./src/index.js",
@@ -37,6 +38,25 @@ module.exports = {
             },
           },
         ],
+        generator: [
+          {
+            type: "asset",
+            preset: "webp",
+            filter: (source, sourcePath) => {
+              if (sourcePath.match(/(github|react)/g)) {
+                return true;
+              }
+
+              return false;
+            },
+            implementation: ImageMinimizerPlugin.sharpGenerate,
+            options: {
+              encodeOptions: {
+                webp: { quality: 90 },
+              },
+            },
+          },
+        ],
       }),
     ],
   },
@@ -55,7 +75,7 @@ module.exports = {
           },
         },
         generator: {
-          filename: "./images/[name].[contenthash:6][ext]",
+          filename: "images/[name].[contenthash:6][ext]",
         },
       },
     ],
@@ -67,6 +87,12 @@ module.exports = {
     new HtmlWebpackPlugin({
       filename: "index.html",
       template: "./src/index.html",
+    }),
+    new CopyPlugin({
+      patterns: [
+        { from: "src/copy/images", to: "images" },
+        { from: "src/webp/images", to: "images" },
+      ],
     }),
   ],
 };
